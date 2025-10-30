@@ -5,384 +5,250 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Quiz Segurança Digital - Terceira Idade</title>
 <style>
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f0f4f8;
-    margin: 0; padding: 20px;
-    color: #333;
-    display: flex;
-    justify-content: center;
-  }
-  #container {
-    background: white;
-    max-width: 600px;
-    width: 100%;
-    border-radius: 10px;
-    padding: 25px 30px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  }
-  h2, h3 { color: #005a87; }
-  label { display: block; margin: 15px 0 5px; font-weight: 600; }
-  input[type=text], input[type=number] {
-    width: 100%;
-    padding: 12px 10px;
-    font-size: 1.1em;
-    border: 1.8px solid #ccc;
-    border-radius: 6px;
-    transition: border-color 0.3s;
-  }
-  input[type=text]:focus, input[type=number]:focus {
-    border-color: #005a87;
-    outline: none;
-  }
-  button {
-    cursor: pointer;
-    margin: 10px 10px 0 0;
-    padding: 12px 24px;
-    font-size: 1.1em;
-    border: none;
-    border-radius: 7px;
-    background-color: #007acc;
-    color: white;
-    transition: background-color 0.3s;
-  }
-  button:hover:not(:disabled) { background-color: #005a87; }
-  button:disabled { background-color: #a3c1db; cursor: default; }
-  #feedbackBox {
-    margin-top: 15px;
-    font-weight: 700;
-    font-size: 1.1em;
-  }
-  #feedbackBox.correct { color: #2d7a2d; }
-  #feedbackBox.wrong { color: #c0392b; }
-  #userInfo {
-    margin-bottom: 20px;
-    font-weight: 600;
-    color: #004c6d;
-  }
-  #quizScreen, #resultScreen { display: none; }
-  table {
-    border-collapse: collapse;
-    margin-top: 20px;
-    width: 100%;
-  }
-  th, td {
-    border: 1px solid #ccc;
-    padding: 12px 10px;
-    text-align: center;
-  }
-  th { background-color: #007acc; color: white; }
-  @media(max-width: 480px) {
-    body { padding: 10px; }
-    #container { padding: 20px 15px; }
-    button { width: 100%; margin: 10px 0 0 0; }
-  }
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f4f8; margin:0; padding:20px; color:#333; display:flex; justify-content:center; }
+  #container { background:white; max-width:600px; width:100%; border-radius:10px; padding:25px 30px; box-shadow:0 4px 10px rgba(0,0,0,0.1); }
+  h2,h3{color:#005a87;}
+  label{display:block;margin:15px 0 5px;font-weight:600;}
+  input[type=text],input[type=number]{width:100%;padding:12px 10px;font-size:1.1em;border:1.8px solid #ccc;border-radius:6px;transition:border-color 0.3s;}
+  input[type=text]:focus,input[type=number]:focus{border-color:#005a87;outline:none;}
+  button{cursor:pointer;margin:10px 10px 0 0;padding:12px 24px;font-size:1.1em;border:none;border-radius:7px;background-color:#007acc;color:white;transition:background-color 0.3s;}
+  button:hover:not(:disabled){background-color:#005a87;}
+  button:disabled{background-color:#a3c1db;cursor:default;}
+  #feedbackBox{margin-top:15px;font-weight:700;font-size:1.1em;}
+  #feedbackBox.correct{color:#2d7a2d;}
+  #feedbackBox.wrong{color:#c0392b;}
+  #userInfo{margin-bottom:20px;font-weight:600;color:#004c6d;}
+  #quizScreen,#resultScreen{display:none;}
+  table{border-collapse:collapse;margin-top:20px;width:100%;}
+  th,td{border:1px solid #ccc;padding:12px 10px;text-align:center;}
+  th{background-color:#007acc;color:white;}
+  @media(max-width:480px){body{padding:10px;}#container{padding:20px 15px;}button{width:100%;margin:10px 0 0 0;}}
 </style>
 </head>
 <body>
-  <div id="container">
+<div id="container">
 
-    <div id="startScreen">
-      <h2>Cadastro do Morador</h2>
-      <label for="name">Nome:</label>
-      <input type="text" id="name" autocomplete="off" />
-
-      <label for="age">Idade:</label>
-      <input type="number" id="age" min="1" max="120" />
-
-      <label for="tower">Torre (1 a 6):</label>
-      <input type="number" id="tower" min="1" max="6" />
-
-      <label for="apartment">Apartamento (ex: 101–108, 201–208, ..., 1201–1208):</label>
-      <input type="number" id="apartment" />
-
-      <button id="startBtn">Iniciar Quiz</button>
-    </div>
-
-    <div id="quizScreen">
-      <div id="userInfo"></div>
-      <h3>Pergunta <span id="qIndex"></span> de <span id="qTotal"></span></h3>
-      <p id="questionText"></p>
-      <button id="btnFraud">Fraude</button>
-      <button id="btnSafe">Não é fraude</button>
-      <div id="feedbackBox"></div>
-      <button id="nextBtn" style="display:none;">Próxima</button>
-      <p style="font-weight:600; margin-top: 15px;">Pontuação: <span id="score">0</span></p>
-    </div>
-
-    <div id="resultScreen">
-      <h2 id="resTitle">Resultado Final</h2>
-      <div id="resInfo">
-        <p><strong>Nome:</strong> <span id="resName"></span></p>
-        <p><strong>Torre:</strong> <span id="resTower"></span></p>
-        <p><strong>Pontuação final:</strong> <span id="finalScore"></span></p>
-      </div>
-
-      <h3>Ranking dos moradores</h3>
-      <table id="leaderboardTable" aria-label="Ranking dos moradores">
-        <thead>
-          <tr><th>Posição</th><th>Nome</th><th>Torre</th><th>Pontuação</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-
-      <h3>Desempenho por faixa etária</h3>
-      <table id="ageStatsTable" aria-label="Desempenho por faixa etária">
-        <thead>
-          <tr><th>Faixa Etária</th><th>Quantidade</th><th>Média de Acertos</th><th>Percentual (%)</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-
-      <button id="restartBtn" style="margin-top:20px;">Reiniciar</button>
-    </div>
-
+  <div id="startScreen">
+    <h2>Cadastro do Morador</h2>
+    <label for="name">Nome:</label>
+    <input type="text" id="name" autocomplete="off" />
+    <label for="age">Idade:</label>
+    <input type="number" id="age" min="1" max="120" />
+    <label for="tower">Torre (1 a 6):</label>
+    <input type="number" id="tower" min="1" max="6" />
+    <label for="apartment">Apartamento (ex: 101–108, 201–208, ..., 1201–1208):</label>
+    <input type="number" id="apartment" />
+    <button id="startBtn">Iniciar Quiz</button>
   </div>
 
-<script>
-// Perguntas fixas (8 perguntas)
+  <div id="quizScreen">
+    <div id="userInfo"></div>
+    <h3>Pergunta <span id="qIndex"></span> de <span id="qTotal"></span></h3>
+    <p id="questionText"></p>
+    <button id="btnFraud">Fraude</button>
+    <button id="btnSafe">Não é fraude</button>
+    <div id="feedbackBox"></div>
+    <button id="nextBtn" style="display:none;">Próxima</button>
+    <p style="font-weight:600;margin-top:15px;">Pontuação: <span id="score">0</span></p>
+  </div>
+
+  <div id="resultScreen">
+    <h2 id="resTitle">Resultado Final</h2>
+    <div id="resInfo">
+      <p><strong>Nome:</strong> <span id="resName"></span></p>
+      <p><strong>Torre:</strong> <span id="resTower"></span></p>
+      <p><strong>Pontuação final:</strong> <span id="finalScore"></span></p>
+    </div>
+
+    <h3>Ranking dos moradores</h3>
+    <table id="leaderboardTable" aria-label="Ranking dos moradores">
+      <thead>
+        <tr><th>Posição</th><th>Nome</th><th>Torre</th><th>Pontuação</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <h3>Desempenho por faixa etária</h3>
+    <table id="ageStatsTable" aria-label="Desempenho por faixa etária">
+      <thead>
+        <tr><th>Faixa Etária</th><th>Quantidade</th><th>Média de Acertos</th><th>Percentual (%)</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <button id="restartBtn" style="margin-top:20px;">Reiniciar</button>
+  </div>
+
+</div>
+
+<script type="module">
+// Firebase setup
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAtSr5znaGgvN9ZyITfCJzZD4jRpthAat0",
+  authDomain: "trabalho-final-ohcao.firebaseapp.com",
+  projectId: "trabalho-final-ohcao",
+  storageBucket: "trabalho-final-ohcao.appspot.com",
+  messagingSenderId: "588002956461",
+  appId: "1:588002956461:web:12eec38aceece890e56224"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Quiz setup
 const SCENARIOS = [
-  {
-    question: "Você recebe uma mensagem de um contato desconhecido pedindo dinheiro urgente. O que fazer?",
-    correct: true,
-    explanation: "É uma fraude comum se passar por conhecidos pedindo dinheiro. Nunca envie sem confirmar pessoalmente."
-  },
-  {
-    question: "Um site pede para você atualizar seus dados bancários via link no e-mail. Isso é seguro?",
-    correct: true,
-    explanation: "Sites legítimos não pedem atualização via links em e-mails. Pode ser phishing."
-  },
-  {
-    question: "Você recebeu um telefonema dizendo que ganhou um prêmio e precisa informar seus dados. É confiável?",
-    correct: true,
-    explanation: "Golpistas usam essa tática para coletar dados. Nunca forneça dados por telefone sem certeza."
-  },
-  {
-    question: "Um aplicativo na loja oficial tem avaliações negativas dizendo que pode ser perigoso. Você deve instalar?",
-    correct: true,
-    explanation: "Avaliações negativas são um alerta. É melhor não instalar aplicativos suspeitos."
-  },
-  {
-    question: "Uma mensagem do seu banco pede para confirmar uma transação via WhatsApp. Você deve confirmar?",
-    correct: true,
-    explanation: "Bancos nunca pedem confirmação de transação por WhatsApp. Pode ser golpe."
-  },
-  {
-    question: "Você recebeu uma oferta de desconto muito grande em redes sociais, mas o link leva para um site estranho. Você deve clicar?",
-    correct: true,
-    explanation: "Links suspeitos podem roubar seus dados. Não clique em links de fontes desconhecidas."
-  },
-  {
-    question: "Um site que você acessa frequentemente pediu para mudar sua senha por motivo de segurança. É recomendável?",
-    correct: false,
-    explanation: "Alterar senhas periodicamente é uma boa prática de segurança."
-  },
-  {
-    question: "Usar senhas fortes e diferentes para cada serviço ajuda a proteger suas contas. Isso é verdade?",
-    correct: false,
-    explanation: "Senhas fortes e diferentes dificultam o acesso não autorizado."
-  }
+  {question:"Você recebe uma mensagem de um contato desconhecido pedindo dinheiro urgente. O que fazer?", correct:true, explanation:"É uma fraude comum se passar por conhecidos pedindo dinheiro. Nunca envie sem confirmar pessoalmente."},
+  {question:"Um site pede para você atualizar seus dados bancários via link no e-mail. Isso é seguro?", correct:true, explanation:"Sites legítimos não pedem atualização via links em e-mails. Pode ser phishing."},
+  {question:"Você recebeu um telefonema dizendo que ganhou um prêmio e precisa informar seus dados. É confiável?", correct:true, explanation:"Golpistas usam essa tática para coletar dados. Nunca forneça dados por telefone sem certeza."},
+  {question:"Um aplicativo na loja oficial tem avaliações negativas dizendo que pode ser perigoso. Você deve instalar?", correct:true, explanation:"Avaliações negativas são um alerta. É melhor não instalar aplicativos suspeitos."},
+  {question:"Uma mensagem do seu banco pede para confirmar uma transação via WhatsApp. Você deve confirmar?", correct:true, explanation:"Bancos nunca pedem confirmação de transação por WhatsApp. Pode ser golpe."},
+  {question:"Você recebeu uma oferta de desconto muito grande em redes sociais, mas o link leva para um site estranho. Você deve clicar?", correct:true, explanation:"Links suspeitos podem roubar seus dados. Não clique em links de fontes desconhecidas."},
+  {question:"Um site que você acessa frequentemente pediu para mudar sua senha por motivo de segurança. É recomendável?", correct:false, explanation:"Alterar senhas periodicamente é uma boa prática de segurança."},
+  {question:"Usar senhas fortes e diferentes para cada serviço ajuda a proteger suas contas. Isso é verdade?", correct:false, explanation:"Senhas fortes e diferentes dificultam o acesso não autorizado."}
 ];
 
-let index = 0;
-let score = 0;
-let user = {};
-let isUninter = false;
+let index=0, score=0, user={}, isUninter=false;
 
-const LB_KEY = "ranking_condominio_fixed";
-const ANSWERED_KEY = "usuarios_respondidos_condominio";
-const AGE_STATS_KEY = "estatisticas_idade_condominio";
+const LB_KEY="ranking_condominio_fixed";
+const ANSWERED_KEY="usuarios_respondidos_condominio";
+const AGE_STATS_KEY="estatisticas_idade_condominio";
 
-const startScreen = document.getElementById("startScreen");
-const quizScreen = document.getElementById("quizScreen");
-const resultScreen = document.getElementById("resultScreen");
-const questionText = document.getElementById("questionText");
-const qIndex = document.getElementById("qIndex");
-const qTotal = document.getElementById("qTotal");
-const scoreEl = document.getElementById("score");
-const feedbackBox = document.getElementById("feedbackBox");
-const nextBtn = document.getElementById("nextBtn");
-const btnFraud = document.getElementById("btnFraud");
-const btnSafe = document.getElementById("btnSafe");
-const userInfo = document.getElementById("userInfo");
-const ageStatsTableBody = document.querySelector("#ageStatsTable tbody");
+const startScreen=document.getElementById("startScreen");
+const quizScreen=document.getElementById("quizScreen");
+const resultScreen=document.getElementById("resultScreen");
+const questionText=document.getElementById("questionText");
+const qIndex=document.getElementById("qIndex");
+const qTotal=document.getElementById("qTotal");
+const scoreEl=document.getElementById("score");
+const feedbackBox=document.getElementById("feedbackBox");
+const nextBtn=document.getElementById("nextBtn");
+const btnFraud=document.getElementById("btnFraud");
+const btnSafe=document.getElementById("btnSafe");
+const userInfo=document.getElementById("userInfo");
+const ageStatsTableBody=document.querySelector("#ageStatsTable tbody");
 
-function jaRespondido(tower, apartment) {
-  const respondedUsers = JSON.parse(localStorage.getItem(ANSWERED_KEY)) || [];
-  return respondedUsers.some(entry => entry.tower === tower && entry.apartment === apartment);
+function jaRespondido(tower, apartment){
+  const respondedUsers=JSON.parse(localStorage.getItem(ANSWERED_KEY))||[];
+  return respondedUsers.some(entry=>entry.tower===tower&&entry.apartment===apartment);
 }
-function marcarRespondido(tower, apartment) {
-  let respondedUsers = JSON.parse(localStorage.getItem(ANSWERED_KEY)) || [];
-  respondedUsers.push({ tower, apartment });
-  localStorage.setItem(ANSWERED_KEY, JSON.stringify(respondedUsers));
+function marcarRespondido(tower, apartment){
+  let respondedUsers=JSON.parse(localStorage.getItem(ANSWERED_KEY))||[];
+  respondedUsers.push({tower,apartment});
+  localStorage.setItem(ANSWERED_KEY,JSON.stringify(respondedUsers));
 }
-
-function showQuestion() {
-  qIndex.textContent = index + 1;
-  qTotal.textContent = SCENARIOS.length;
-  questionText.textContent = SCENARIOS[index].question;
-  feedbackBox.textContent = "";
-  feedbackBox.className = "";
-  nextBtn.style.display = "none";
-  btnFraud.disabled = false;
-  btnSafe.disabled = false;
-}
-function checkAnswer(userAnswer) {
-  const current = SCENARIOS[index];
-  btnFraud.disabled = true;
-  btnSafe.disabled = true;
-
-  if (userAnswer === current.correct) {
-    score++;
-    feedbackBox.textContent = "Correto! " + current.explanation;
-    feedbackBox.className = "correct";
-  } else {
-    feedbackBox.textContent = "Errado! " + current.explanation;
-    feedbackBox.className = "wrong";
+function iniciarQuiz(){
+  const name=document.getElementById("name").value.trim();
+  const age=parseInt(document.getElementById("age").value);
+  const tower=parseInt(document.getElementById("tower").value);
+  const apartment=parseInt(document.getElementById("apartment").value);
+  if(!name||!age||!tower||(isNaN(apartment)&&!isUninter)){ alert("Preencha todos os campos corretamente."); return; }
+  user={name,age,tower,apartment};
+  if(jaRespondido(tower, apartment)){
+    alert("Morador já respondeu o quiz! Entrando no modo UNINTER para apenas visualizar.");
+    isUninter=true; user.name="UNINTER"; user.tower=tower; user.apartment=apartment; user.age=age;
   }
-  scoreEl.textContent = score;
-  nextBtn.style.display = "inline-block";
+  startScreen.style.display="none";
+  quizScreen.style.display="block";
+  qTotal.textContent=SCENARIOS.length;
+  qIndex.textContent=index+1;
+  userInfo.textContent=`Morador: ${user.name} | Torre: ${user.tower} | Apt: ${user.apartment||"-"}`;
+  mostrarPergunta();
 }
-
-// 👉 Corrigido: atualiza estatísticas sempre, mas só grava se não for Uninter
-function atualizarEstatisticasIdade() {
-  let stats = JSON.parse(localStorage.getItem(AGE_STATS_KEY)) || [];
-
-  if (!isUninter && user.age >= 60) {
-    stats.push({ age: user.age, score: score });
-    localStorage.setItem(AGE_STATS_KEY, JSON.stringify(stats));
-  }
-
-  const faixas = {
-    "60 - 70": [],
-    "71 - 80": [],
-    "81 - 90": [],
-    "Acima de 90": []
-  };
-
-  stats.forEach(e => {
-    const a = e.age;
-    if (a >= 60 && a <= 70) faixas["60 - 70"].push(e.score);
-    else if (a >= 71 && a <= 80) faixas["71 - 80"].push(e.score);
-    else if (a >= 81 && a <= 90) faixas["81 - 90"].push(e.score);
-    else if (a > 90) faixas["Acima de 90"].push(e.score);
+function mostrarPergunta(){
+  const q=SCENARIOS[index];
+  questionText.textContent=q.question;
+  feedbackBox.textContent=""; feedbackBox.className="";
+  nextBtn.style.display="none";
+  btnFraud.disabled=false; btnSafe.disabled=false;
+}
+function responder(resposta){
+  btnFraud.disabled=true; btnSafe.disabled=true;
+  const q=SCENARIOS[index];
+  const acerto=(resposta===q.correct);
+  if(acerto){ score++; scoreEl.textContent=score; feedbackBox.className="correct"; feedbackBox.textContent="Correto! "+q.explanation; }
+  else{ feedbackBox.className="wrong"; feedbackBox.textContent="Errado! "+q.explanation; }
+  nextBtn.style.display="inline-block";
+}
+function proximaPergunta(){
+  index++;
+  if(index<SCENARIOS.length){ qIndex.textContent=index+1; mostrarPergunta(); }
+  else{ showResult(); }
+}
+async function salvarResultadoFirebase(user, score){
+  if(isUninter) return;
+  try{
+    await addDoc(collection(db,"resultados"),{
+      name:user.name, tower:user.tower, apartment:user.apartment||null, age:user.age||null, score, timestamp:new Date()
+    });
+  } catch(e){ console.error("Erro Firebase:",e); }
+}
+async function carregarRankingFirebase(){
+  try{
+    const q=query(collection(db,"resultados"), orderBy("score","desc"), limit(10));
+    const querySnapshot=await getDocs(q);
+    const tbody=document.querySelector("#leaderboardTable tbody");
+    tbody.innerHTML="";
+    let i=1;
+    querySnapshot.forEach(doc=>{
+      const d=doc.data();
+      const tr=document.createElement("tr");
+      tr.innerHTML=`<td>${i}</td><td>${d.name}</td><td>${d.tower||'-'}</td><td>${d.score}</td>`;
+      tbody.appendChild(tr); i++;
+    });
+  }catch(e){ console.error("Erro ao carregar ranking Firebase:", e); }
+}
+function atualizarEstatisticasIdade(){
+  const ranking=JSON.parse(localStorage.getItem(LB_KEY))||[];
+  const faixas=[{label:"60–69",min:60,max:69},{label:"70–79",min:70,max:79},{label:"80+",min:80,max:120}];
+  ageStatsTableBody.innerHTML="";
+  faixas.forEach(f=>{
+    const moradores=ranking.filter(m=>m.age>=f.min&&m.age<=f.max);
+    const qtd=moradores.length;
+    const media=qtd>0?(moradores.reduce((sum,m)=>sum+m.score,0)/qtd).toFixed(2):0;
+    const perc=qtd>0?((media/SCENARIOS.length)*100).toFixed(2):0;
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${f.label}</td><td>${qtd}</td><td>${media}</td><td>${perc}</td>`;
+    ageStatsTableBody.appendChild(tr);
   });
-
-  ageStatsTableBody.innerHTML = "";
-  for (const faixa in faixas) {
-    const valores = faixas[faixa];
-    if (valores.length === 0) {
-      ageStatsTableBody.innerHTML += `<tr><td>${faixa}</td><td>0</td><td>-</td><td>-</td></tr>`;
-      continue;
-    }
-    const media = valores.reduce((a,b)=>a+b,0)/valores.length;
-    const percentual = ((media / SCENARIOS.length) * 100).toFixed(1);
-    ageStatsTableBody.innerHTML += `<tr><td>${faixa}</td><td>${valores.length}</td><td>${media.toFixed(2)}</td><td>${percentual}</td></tr>`;
-  }
 }
+async function showResult(){
+  startScreen.style.display="none"; quizScreen.style.display="none"; resultScreen.style.display="block";
+  const resInfo=document.getElementById("resInfo");
+  const resTitle=document.getElementById("resTitle");
+  if(isUninter){ resInfo.style.display="none"; resTitle.textContent="Resumo dos Moradores"; }
+  else{
+    document.getElementById("resName").textContent=user.name;
+    document.getElementById("resTower").textContent=user.tower;
+    document.getElementById("finalScore").textContent=score;
+    marcarRespondido(user.tower,user.apartment);
 
-function showResult() {
-  startScreen.style.display = "none";
-  quizScreen.style.display = "none";
-  resultScreen.style.display = "block";
-
-  const resInfo = document.getElementById("resInfo");
-  const resTitle = document.getElementById("resTitle");
-
-  if (isUninter) {
-    resInfo.style.display = "none";
-    resTitle.textContent = "Resumo dos Moradores";
-  } else {
-    document.getElementById("resName").textContent = user.name;
-    document.getElementById("resTower").textContent = user.tower;
-    document.getElementById("finalScore").textContent = score;
-    marcarRespondido(user.tower, user.apartment);
+    await salvarResultadoFirebase(user, score);
   }
 
-  let ranking = JSON.parse(localStorage.getItem(LB_KEY)) || [];
-  if (!isUninter) {
-    ranking.push({ name: user.name, tower: user.tower, score });
-    ranking.sort((a,b)=>b.score - a.score);
-    localStorage.setItem(LB_KEY, JSON.stringify(ranking));
-  }
+  let ranking=JSON.parse(localStorage.getItem(LB_KEY))||[];
+  if(!isUninter){ ranking.push({name:user.name,tower:user.tower,age:user.age||0,score}); ranking.sort((a,b)=>b.score-a.score); localStorage.setItem(LB_KEY,JSON.stringify(ranking)); }
 
-  const tbody = document.querySelector("#leaderboardTable tbody");
-  tbody.innerHTML = "";
-  ranking.forEach((entry, i) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${i+1}</td><td>${entry.name}</td><td>${entry.tower}</td><td>${entry.score}</td>`;
+  const tbody=document.querySelector("#leaderboardTable tbody");
+  tbody.innerHTML="";
+  ranking.forEach((entry,i)=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${i+1}</td><td>${entry.name}</td><td>${entry.tower}</td><td>${entry.score}</td>`;
     tbody.appendChild(tr);
   });
 
   atualizarEstatisticasIdade();
+  await carregarRankingFirebase();
 }
 
-function iniciarQuiz() {
-  const name = document.getElementById("name").value.trim();
-  const age = Number(document.getElementById("age").value);
-  const tower = Number(document.getElementById("tower").value);
-  const apartment = Number(document.getElementById("apartment").value);
+document.getElementById("startBtn").addEventListener("click",iniciarQuiz);
+btnFraud.addEventListener("click",()=>responder(true));
+btnSafe.addEventListener("click",()=>responder(false));
+nextBtn.addEventListener("click",proximaPergunta);
+document.getElementById("restartBtn").addEventListener("click",()=>location.reload());
 
-  if (!name) { alert("Por favor, insira seu nome."); return; }
-
-  if (name.toLowerCase() === "uninter") {
-    isUninter = true;
-  } else {
-    isUninter = false;
-    if (!age || age < 1 || age > 120) { alert("Idade inválida."); return; }
-    if (!tower || tower < 1 || tower > 6) { alert("Torre inválida."); return; }
-
-    const andar = Math.floor(apartment / 100);
-    const unidade = apartment % 100;
-    const andarValido = andar >= 1 && andar <= 12;
-    const unidadeValida = unidade >= 1 && unidade <= 8;
-
-    if (!andarValido || !unidadeValida) {
-      alert("Apartamento inválido. Use apenas 101–108, 201–208, ..., 1201–1208.");
-      return;
-    }
-
-    if (jaRespondido(tower, apartment)) {
-      alert("Este apartamento já respondeu ao quiz.");
-      return;
-    }
-  }
-
-  user = { name, age, tower, apartment };
-  index = 0;
-  score = 0;
-
-  startScreen.style.display = "none";
-  quizScreen.style.display = "block";
-  resultScreen.style.display = "none";
-
-  userInfo.textContent = isUninter ? 
-    "Modo UNINTER: visualização do quiz" :
-    `Olá, ${name} (Torre ${tower}, Apt ${apartment})`;
-
-  scoreEl.textContent = score;
-  showQuestion();
-}
-
-document.getElementById("startBtn").addEventListener("click", iniciarQuiz);
-btnFraud.addEventListener("click", () => checkAnswer(true));
-btnSafe.addEventListener("click", () => checkAnswer(false));
-nextBtn.addEventListener("click", () => {
-  index++;
-  if (index >= SCENARIOS.length) showResult();
-  else showQuestion();
-});
-document.getElementById("restartBtn").addEventListener("click", () => {
-  startScreen.style.display = "block";
-  quizScreen.style.display = "none";
-  resultScreen.style.display = "none";
-  document.getElementById("name").value = "";
-  document.getElementById("age").value = "";
-  document.getElementById("tower").value = "";
-  document.getElementById("apartment").value = "";
-  feedbackBox.textContent = "";
-  ageStatsTableBody.innerHTML = "";
-});
 </script>
 </body>
 </html>
