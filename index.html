@@ -87,14 +87,16 @@
       <label for="name">Nome:</label>
       <input type="text" id="name" autocomplete="off" />
 
-      <label for="age">Idade:</label>
-      <input type="number" id="age" min="1" max="120" />
+      <div id="extraFields">
+        <label for="age">Idade:</label>
+        <input type="number" id="age" min="1" max="120" />
 
-      <label for="tower">Torre (1 a 6):</label>
-      <input type="number" id="tower" min="1" max="6" />
+        <label for="tower">Torre (1 a 6):</label>
+        <input type="number" id="tower" min="1" max="6" />
 
-      <label for="apartment">Apartamento (ex: 101–108, 201–208, ..., 1201–1208):</label>
-      <input type="number" id="apartment" />
+        <label for="apartment">Apartamento (ex: 101–108, 201–208, ..., 1201–1208):</label>
+        <input type="number" id="apartment" />
+      </div>
 
       <button id="startBtn">Iniciar Quiz</button>
     </div>
@@ -126,14 +128,6 @@
         <tbody></tbody>
       </table>
 
-      <h3>Desempenho por faixa etária</h3>
-      <table id="ageStatsTable" aria-label="Desempenho por faixa etária">
-        <thead>
-          <tr><th>Faixa Etária</th><th>Quantidade</th><th>Média de Acertos</th><th>Percentual (%)</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-
       <button id="restartBtn" style="margin-top:20px;">Reiniciar</button>
     </div>
 
@@ -143,7 +137,6 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
   import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
 
-  // Configuração do Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyAtSr5znaGgvN9ZyITfCJzZD4jRpthAat0",
     authDomain: "trabalho-final-ohcao.firebaseapp.com",
@@ -156,10 +149,6 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // ================================
-  //        CÓDIGO DO QUIZ
-  // ================================
-
   const SCENARIOS = [
     { question: "Você recebe uma mensagem de um contato desconhecido pedindo dinheiro urgente. O que fazer?", correct: true, explanation: "É uma fraude comum se passar por conhecidos pedindo dinheiro. Nunca envie sem confirmar pessoalmente." },
     { question: "Um site pede para você atualizar seus dados bancários via link no e-mail. Isso é seguro?", correct: true, explanation: "Sites legítimos não pedem atualização via links em e-mails. Pode ser phishing." },
@@ -171,10 +160,7 @@
     { question: "Usar senhas fortes e diferentes para cada serviço ajuda a proteger suas contas. Isso é verdade?", correct: false, explanation: "Senhas fortes e diferentes dificultam o acesso não autorizado." }
   ];
 
-  let index = 0;
-  let score = 0;
-  let user = {};
-  let isUninter = false;
+  let index = 0, score = 0, user = {}, isUninter = false;
 
   const startScreen = document.getElementById("startScreen");
   const quizScreen = document.getElementById("quizScreen");
@@ -188,7 +174,7 @@
   const btnFraud = document.getElementById("btnFraud");
   const btnSafe = document.getElementById("btnSafe");
   const userInfo = document.getElementById("userInfo");
-  const ageStatsTableBody = document.querySelector("#ageStatsTable tbody");
+  const extraFields = document.getElementById("extraFields");
 
   function showQuestion() {
     qIndex.textContent = index + 1;
@@ -201,12 +187,12 @@
     btnSafe.disabled = false;
   }
 
-  function checkAnswer(userAnswer) {
+  function checkAnswer(answer) {
     const current = SCENARIOS[index];
     btnFraud.disabled = true;
     btnSafe.disabled = true;
 
-    if (userAnswer === current.correct) {
+    if (answer === current.correct) {
       score++;
       feedbackBox.textContent = "Correto! " + current.explanation;
       feedbackBox.className = "correct";
@@ -219,6 +205,7 @@
   }
 
   async function saveResultToFirebase() {
+    if (isUninter) return; // não salva se for UNINTER
     try {
       await addDoc(collection(db, "quizResults"), {
         name: user.name,
@@ -228,13 +215,12 @@
         score: score,
         timestamp: new Date()
       });
-      console.log("✅ Resultado salvo no Firestore!");
     } catch (e) {
       console.error("Erro ao salvar:", e);
     }
   }
 
-  async function loadRankingFromFirebase() {
+  async function loadRanking() {
     const snapshot = await getDocs(collection(db, "quizResults"));
     let data = [];
     snapshot.forEach(doc => data.push(doc.data()));
@@ -258,25 +244,30 @@
       document.getElementById("resInfo").style.display = "none";
       document.getElementById("resTitle").textContent = "Resumo dos Moradores";
     } else {
+      document.getElementById("resInfo").style.display = "block";
+      document.getElementById("resTitle").textContent = "Resultado Final";
       document.getElementById("resName").textContent = user.name;
       document.getElementById("resTower").textContent = user.tower;
       document.getElementById("finalScore").textContent = score;
       saveResultToFirebase();
     }
-    loadRankingFromFirebase();
+
+    loadRanking();
   }
 
   function iniciarQuiz() {
-    const name = document.getElementById("name").value.trim();
-    const age = Number(document.getElementById("age").value);
-    const tower = Number(document.getElementById("tower").value);
-    const apartment = Number(document.getElementById("apartment").value);
+    const name = document.getElementById("name").value.trim().toLowerCase();
 
-    if (!name) { alert("Por favor, insira seu nome."); return; }
+    if (!name) { alert("Por favor, insira o nome."); return; }
 
-    if (name.toLowerCase() === "uninter") {
+    if (name === "uninter") {
       isUninter = true;
+      user = { name: "UNINTER" };
     } else {
+      const age = Number(document.getElementById("age").value);
+      const tower = Number(document.getElementById("tower").value);
+      const apartment = Number(document.getElementById("apartment").value);
+
       if (!age || age < 1 || age > 120) { alert("Idade inválida."); return; }
       if (!tower || tower < 1 || tower > 6) { alert("Torre inválida."); return; }
       const andar = Math.floor(apartment / 100);
@@ -284,42 +275,13 @@
       if (!(andar >= 1 && andar <= 12 && unidade >= 1 && unidade <= 8)) {
         alert("Apartamento inválido."); return;
       }
+      user = { name, age, tower, apartment };
     }
-
-    user = { name, age, tower, apartment };
-    index = 0;
-    score = 0;
 
     startScreen.style.display = "none";
     quizScreen.style.display = "block";
-    resultScreen.style.display = "none";
-
-    userInfo.textContent = isUninter ? 
-      "Modo UNINTER: visualização do quiz" :
-      `Olá, ${name} (Torre ${tower}, Apt ${apartment})`;
-
+    score = 0;
+    index = 0;
     scoreEl.textContent = score;
-    showQuestion();
-  }
 
-  document.getElementById("startBtn").addEventListener("click", iniciarQuiz);
-  btnFraud.addEventListener("click", () => checkAnswer(true));
-  btnSafe.addEventListener("click", () => checkAnswer(false));
-  nextBtn.addEventListener("click", () => {
-    index++;
-    if (index >= SCENARIOS.length) showResult();
-    else showQuestion();
-  });
-  document.getElementById("restartBtn").addEventListener("click", () => {
-    startScreen.style.display = "block";
-    quizScreen.style.display = "none";
-    resultScreen.style.display = "none";
-    document.getElementById("name").value = "";
-    document.getElementById("age").value = "";
-    document.getElementById("tower").value = "";
-    document.getElementById("apartment").value = "";
-    feedbackBox.textContent = "";
-  });
-</script>
-</body>
-</html>
+    userInfo.textContent =
