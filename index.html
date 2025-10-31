@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -134,190 +134,213 @@
         <tbody></tbody>
       </table>
 
+      <button id="downloadCSVBtn" style="margin-top:20px; display:none;">Baixar resultados em CSV</button>
       <button id="restartBtn" style="margin-top:20px;">Reiniciar</button>
     </div>
 
   </div>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAtSr5znaGgvN9ZyITfCJzZD4jRpthAat0",
-    authDomain: "trabalho-final-ohcao.firebaseapp.com",
-    projectId: "trabalho-final-ohcao",
-    storageBucket: "trabalho-final-ohcao.appspot.com",
-    messagingSenderId: "588002956461",
-    appId: "1:588002956461:web:12eec38aceece890e56224"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyAtSr5znaGgvN9ZyITfCJzZD4jRpthAat0",
+  authDomain: "trabalho-final-ohcao.firebaseapp.com",
+  projectId: "trabalho-final-ohcao",
+  storageBucket: "trabalho-final-ohcao.appspot.com",
+  messagingSenderId: "588002956461",
+  appId: "1:588002956461:web:12eec38aceece890e56224"
+};
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-  const SCENARIOS = [
-    { question: "Você recebe uma mensagem de um contato desconhecido pedindo dinheiro urgente. O que fazer?", correct: true, explanation: "É uma fraude comum se passar por conhecidos pedindo dinheiro. Nunca envie sem confirmar pessoalmente." },
-    { question: "Um site pede para você atualizar seus dados bancários via link no e-mail. Isso é seguro?", correct: true, explanation: "Sites legítimos não pedem atualização via links em e-mails. Pode ser phishing." },
-    { question: "Você recebeu um telefonema dizendo que ganhou um prêmio e precisa informar seus dados. É confiável?", correct: true, explanation: "Golpistas usam essa tática para coletar dados. Nunca forneça dados por telefone sem certeza." },
-    { question: "Um aplicativo na loja oficial tem avaliações negativas dizendo que pode ser perigoso. Você deve instalar?", correct: true, explanation: "Avaliações negativas são um alerta. É melhor não instalar aplicativos suspeitos." },
-    { question: "Uma mensagem do seu banco pede para confirmar uma transação via WhatsApp. Você deve confirmar?", correct: true, explanation: "Bancos nunca pedem confirmação de transação por WhatsApp. Pode ser golpe." },
-    { question: "Você recebeu uma oferta de desconto muito grande em redes sociais, mas o link leva para um site estranho. Você deve clicar?", correct: true, explanation: "Links suspeitos podem roubar seus dados. Não clique em links de fontes desconhecidas." },
-    { question: "Um site que você acessa frequentemente pediu para mudar sua senha por motivo de segurança. É recomendável?", correct: false, explanation: "Alterar senhas periodicamente é uma boa prática de segurança." },
-    { question: "Usar senhas fortes e diferentes para cada serviço ajuda a proteger suas contas. Isso é verdade?", correct: false, explanation: "Senhas fortes e diferentes dificultam o acesso não autorizado." }
-  ];
+// Perguntas fixas (8 perguntas)
+const SCENARIOS = [
+  { question: "Você recebe uma mensagem de um contato desconhecido pedindo dinheiro urgente. O que fazer?", correct: true, explanation: "É uma fraude comum se passar por conhecidos pedindo dinheiro. Nunca envie sem confirmar pessoalmente." },
+  { question: "Um site pede para você atualizar seus dados bancários via link no e-mail. Isso é seguro?", correct: true, explanation: "Sites legítimos não pedem atualização via links em e-mails. Pode ser phishing." },
+  { question: "Você recebeu um telefonema dizendo que ganhou um prêmio e precisa informar seus dados. É confiável?", correct: true, explanation: "Golpistas usam essa tática para coletar dados. Nunca forneça dados por telefone sem certeza." },
+  { question: "Um aplicativo na loja oficial tem avaliações negativas dizendo que pode ser perigoso. Você deve instalar?", correct: true, explanation: "Avaliações negativas são um alerta. É melhor não instalar aplicativos suspeitos." },
+  { question: "Uma mensagem do seu banco pede para confirmar uma transação via WhatsApp. Você deve confirmar?", correct: true, explanation: "Bancos nunca pedem confirmação de transação por WhatsApp. Pode ser golpe." },
+  { question: "Você recebeu uma oferta de desconto muito grande em redes sociais, mas o link leva para um site estranho. Você deve clicar?", correct: true, explanation: "Links suspeitos podem roubar seus dados. Não clique em links de fontes desconhecidas." },
+  { question: "Um site que você acessa frequentemente pediu para mudar sua senha por motivo de segurança. É recomendável?", correct: false, explanation: "Alterar senhas periodicamente é uma boa prática de segurança." },
+  { question: "Usar senhas fortes e diferentes para cada serviço ajuda a proteger suas contas. Isso é verdade?", correct: false, explanation: "Senhas fortes e diferentes dificultam o acesso não autorizado." }
+];
 
-  let index = 0, score = 0, user = {}, isUninter = false;
+let index = 0;
+let score = 0;
+let user = {};
+let isUninter = false;
 
-  const startScreen = document.getElementById("startScreen");
-  const quizScreen = document.getElementById("quizScreen");
-  const resultScreen = document.getElementById("resultScreen");
-  const questionText = document.getElementById("questionText");
-  const qIndex = document.getElementById("qIndex");
-  const qTotal = document.getElementById("qTotal");
-  const scoreEl = document.getElementById("score");
-  const feedbackBox = document.getElementById("feedbackBox");
-  const nextBtn = document.getElementById("nextBtn");
-  const btnFraud = document.getElementById("btnFraud");
-  const btnSafe = document.getElementById("btnSafe");
-  const userInfo = document.getElementById("userInfo");
-  const ageStatsTableBody = document.querySelector("#ageStatsTable tbody");
-  const leaderboardBody = document.querySelector("#leaderboardTable tbody");
+const LB_KEY = "ranking_condominio_fixed";
+const ANSWERED_KEY = "usuarios_respondidos_condominio";
+const AGE_STATS_KEY = "estatisticas_idade_condominio";
 
-  function showQuestion() {
-    qIndex.textContent = index + 1;
-    qTotal.textContent = SCENARIOS.length;
-    questionText.textContent = SCENARIOS[index].question;
-    feedbackBox.textContent = "";
-    feedbackBox.className = "";
-    nextBtn.style.display = "none";
-    btnFraud.disabled = false;
-    btnSafe.disabled = false;
-  }
+const startScreen = document.getElementById("startScreen");
+const quizScreen = document.getElementById("quizScreen");
+const resultScreen = document.getElementById("resultScreen");
+const startBtn = document.getElementById("startBtn");
+const btnFraud = document.getElementById("btnFraud");
+const btnSafe = document.getElementById("btnSafe");
+const nextBtn = document.getElementById("nextBtn");
+const questionText = document.getElementById("questionText");
+const qIndexEl = document.getElementById("qIndex");
+const qTotalEl = document.getElementById("qTotal");
+const scoreEl = document.getElementById("score");
+const feedbackBox = document.getElementById("feedbackBox");
+const userInfoEl = document.getElementById("userInfo");
+const resNameEl = document.getElementById("resName");
+const resTowerEl = document.getElementById("resTower");
+const finalScoreEl = document.getElementById("finalScore");
+const leaderboardTable = document.getElementById("leaderboardTable").querySelector("tbody");
+const ageStatsTable = document.getElementById("ageStatsTable").querySelector("tbody");
+const downloadCSVBtn = document.getElementById("downloadCSVBtn");
+const restartBtn = document.getElementById("restartBtn");
 
-  function checkAnswer(userAnswer) {
-    const current = SCENARIOS[index];
-    btnFraud.disabled = true;
-    btnSafe.disabled = true;
+startBtn.addEventListener("click", () => {
+  const name = document.getElementById("name").value.trim();
+  const age = parseInt(document.getElementById("age").value);
+  const tower = parseInt(document.getElementById("tower").value);
+  const apartment = document.getElementById("apartment").value.trim();
 
-    if (userAnswer === current.correct) {
-      score++;
-      feedbackBox.textContent = "Correto! " + current.explanation;
-      feedbackBox.className = "correct";
-    } else {
-      feedbackBox.textContent = "Errado! " + current.explanation;
-      feedbackBox.className = "wrong";
-    }
-    scoreEl.textContent = score;
-    nextBtn.style.display = "inline-block";
-  }
+  // Usuário uninter entra direto, sem validação
+  isUninter = name.toLowerCase() === "uninter";
 
-  async function showResult() {
-    startScreen.style.display = "none";
-    quizScreen.style.display = "none";
-    resultScreen.style.display = "block";
-
-    const resInfo = document.getElementById("resInfo");
-    const resTitle = document.getElementById("resTitle");
-
-    if (isUninter) {
-      resInfo.style.display = "none";
-      resTitle.textContent = "Resumo dos Moradores";
-      await carregarResumoFirestore();
+  if(!isUninter) {
+    if(!name || !age || !tower || !apartment) {
+      alert("Por favor, preencha todos os campos.");
       return;
     }
+  }
 
-    document.getElementById("resName").textContent = user.name;
-    document.getElementById("resTower").textContent = user.tower;
-    document.getElementById("finalScore").textContent = score;
+  user = { name, age, tower, apartment };
+  startScreen.style.display = "none";
+  quizScreen.style.display = "block";
 
-    await addDoc(collection(db, "quizResults"), {
+  userInfoEl.textContent = isUninter ? "Usuário Uninter (visualização de resultados)" : `${name} - Torre ${tower}`;
+  qTotalEl.textContent = SCENARIOS.length;
+  showQuestion();
+});
+
+function showQuestion() {
+  const current = SCENARIOS[index];
+  questionText.textContent = current.question;
+  qIndexEl.textContent = index + 1;
+  feedbackBox.textContent = "";
+  feedbackBox.className = "";
+  btnFraud.disabled = false;
+  btnSafe.disabled = false;
+  nextBtn.style.display = "none";
+}
+
+function checkAnswer(answer) {
+  const correct = SCENARIOS[index].correct;
+  btnFraud.disabled = true;
+  btnSafe.disabled = true;
+  if(answer === correct) {
+    score++;
+    feedbackBox.textContent = "Correto! ✅";
+    feedbackBox.className = "correct";
+  } else {
+    feedbackBox.textContent = "Incorreto ❌";
+    feedbackBox.className = "wrong";
+  }
+  nextBtn.style.display = "inline-block";
+}
+
+btnFraud.addEventListener("click", () => checkAnswer(true));
+btnSafe.addEventListener("click", () => checkAnswer(false));
+
+nextBtn.addEventListener("click", () => {
+  index++;
+  if(index < SCENARIOS.length) {
+    showQuestion();
+  } else {
+    endQuiz();
+  }
+});
+
+async function endQuiz() {
+  quizScreen.style.display = "none";
+  resultScreen.style.display = "block";
+
+  resNameEl.textContent = user.name;
+  resTowerEl.textContent = user.tower || "-";
+  finalScoreEl.textContent = score;
+
+  // Salvar no Firestore se não for uninter
+  if(!isUninter) {
+    await addDoc(collection(db, "quiz_results"), {
       name: user.name,
+      age: user.age,
       tower: user.tower,
       apartment: user.apartment,
-      age: user.age,
       score,
       timestamp: new Date()
     });
   }
 
-  async function carregarResumoFirestore() {
-    const snapshot = await getDocs(collection(db, "quizResults"));
-    const dados = snapshot.docs.map(d => d.data());
+  await updateLeaderboardAndStats();
+}
 
-    // Ranking
-    const ranking = [...dados].sort((a,b) => b.score - a.score);
-    leaderboardBody.innerHTML = "";
-    ranking.forEach((r, i) => {
-      leaderboardBody.innerHTML += `<tr><td>${i+1}</td><td>${r.name}</td><td>${r.tower}</td><td>${r.score}</td></tr>`;
-    });
+async function updateLeaderboardAndStats() {
+  const q = query(collection(db, "quiz_results"), orderBy("score", "desc"));
+  const snapshot = await getDocs(q);
+  const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    // Faixas etárias
-    const faixas = { "60 - 70": [], "71 - 80": [], "81 - 90": [], "Acima de 90": [] };
-    dados.forEach(d => {
-      const a = d.age;
-      if (a >= 60 && a <= 70) faixas["60 - 70"].push(d.score);
-      else if (a >= 71 && a <= 80) faixas["71 - 80"].push(d.score);
-      else if (a >= 81 && a <= 90) faixas["81 - 90"].push(d.score);
-      else if (a > 90) faixas["Acima de 90"].push(d.score);
-    });
-
-    ageStatsTableBody.innerHTML = "";
-    for (const faixa in faixas) {
-      const v = faixas[faixa];
-      const qtd = v.length;
-      const media = qtd ? (v.reduce((a,b)=>a+b,0)/qtd).toFixed(2) : "-";
-      const perc = qtd ? ((media / SCENARIOS.length) * 100).toFixed(1) : "-";
-      ageStatsTableBody.innerHTML += `<tr><td>${faixa}</td><td>${qtd}</td><td>${media}</td><td>${perc}</td></tr>`;
-    }
-  }
-
-  function iniciarQuiz() {
-    const name = document.getElementById("name").value.trim();
-    const age = Number(document.getElementById("age").value);
-    const tower = Number(document.getElementById("tower").value);
-    const apartment = Number(document.getElementById("apartment").value);
-
-    if (!name) { alert("Por favor, insira seu nome."); return; }
-
-    if (name.toLowerCase() === "uninter") {
-      isUninter = true;
-    } else {
-      isUninter = false;
-      if (!age || age < 1 || age > 120) { alert("Idade inválida."); return; }
-      if (!tower || tower < 1 || tower > 6) { alert("Torre inválida."); return; }
-
-      const andar = Math.floor(apartment / 100);
-      const unidade = apartment % 100;
-      if (andar < 1 || andar > 12 || unidade < 1 || unidade > 8) {
-        alert("Apartamento inválido. Use apenas 101–108, 201–208, ..., 1201–1208.");
-        return;
-      }
-    }
-
-    user = { name, age, tower, apartment };
-    index = 0; score = 0;
-
-    startScreen.style.display = "none";
-    quizScreen.style.display = "block";
-    resultScreen.style.display = "none";
-
-    userInfo.textContent = isUninter
-      ? "Modo UNINTER: visualização do quiz"
-      : `Olá, ${name} (Torre ${tower}, Apt ${apartment})`;
-
-    scoreEl.textContent = score;
-    showQuestion();
-  }
-
-  document.getElementById("startBtn").addEventListener("click", iniciarQuiz);
-  btnFraud.addEventListener("click", () => checkAnswer(true));
-  btnSafe.addEventListener("click", () => checkAnswer(false));
-  nextBtn.addEventListener("click", () => {
-    index++;
-    if (index >= SCENARIOS.length) showResult();
-    else showQuestion();
+  // Atualiza ranking
+  leaderboardTable.innerHTML = "";
+  data.forEach((item, idx) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${idx+1}</td><td>${item.name}</td><td>${item.tower || "-"}</td><td>${item.score}</td>`;
+    leaderboardTable.appendChild(tr);
   });
-  document.getElementById("restartBtn").addEventListener("click", () => location.reload());
+
+  // Estatísticas por faixa etária
+  const ranges = [
+    { label: "50–59", min: 50, max: 59 },
+    { label: "60–69", min: 60, max: 69 },
+    { label: "70–79", min: 70, max: 79 },
+    { label: "80+", min: 80, max: 200 }
+  ];
+
+  ageStatsTable.innerHTML = "";
+  ranges.forEach(r => {
+    const filtered = data.filter(u => u.age >= r.min && u.age <= r.max);
+    const avg = filtered.length ? (filtered.reduce((a,b)=>a+b.score,0)/filtered.length).toFixed(2) : 0;
+    const percent = filtered.length ? ((avg/SCENARIOS.length)*100).toFixed(0) : 0;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${r.label}</td><td>${filtered.length}</td><td>${avg}</td><td>${percent}</td>`;
+    ageStatsTable.appendChild(tr);
+  });
+
+  // Mostrar botão CSV apenas para uninter
+  if(isUninter) {
+    downloadCSVBtn.style.display = "inline-block";
+  }
+}
+
+// Download CSV
+downloadCSVBtn.addEventListener("click", () => {
+  const rows = [["Nome","Torre","Apartamento","Idade","Pontuação","Data/Hora"]];
+  Array.from(leaderboardTable.querySelectorAll("tr")).forEach((tr,i)=>{
+    if(i===0) return; // cabeçalho
+    const tds = tr.querySelectorAll("td");
+    const userData = data[i-1];
+    rows.push([userData.name, userData.tower, userData.apartment, userData.age, userData.score, new Date(userData.timestamp.seconds*1000).toLocaleString()]);
+  });
+  const csvContent = "data:text/csv;charset=utf-8," + rows.map(e=>e.join(",")).join("\n");
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", "resultados_quiz.csv");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+});
+
+restartBtn.addEventListener("click", () => location.reload());
 </script>
 </body>
 </html>
