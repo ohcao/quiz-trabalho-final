@@ -5,144 +5,86 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Quiz Segurança Digital - Terceira Idade</title>
 <style>
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f0f4f8;
-    margin: 0; padding: 20px;
-    color: #333;
-    display: flex;
-    justify-content: center;
-  }
-  #container {
-    background: white;
-    max-width: 600px;
-    width: 100%;
-    border-radius: 10px;
-    padding: 25px 30px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  }
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f4f8; margin: 0; padding: 20px; color: #333; display: flex; justify-content: center; }
+  #container { background: white; max-width: 600px; width: 100%; border-radius: 10px; padding: 25px 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
   h2, h3 { color: #005a87; }
   label { display: block; margin: 15px 0 5px; font-weight: 600; }
-  input[type=text], input[type=number] {
-    width: 100%;
-    padding: 12px 10px;
-    font-size: 1.1em;
-    border: 1.8px solid #ccc;
-    border-radius: 6px;
-    transition: border-color 0.3s;
-  }
-  input[type=text]:focus, input[type=number]:focus {
-    border-color: #005a87;
-    outline: none;
-  }
-  button {
-    cursor: pointer;
-    margin: 10px 10px 0 0;
-    padding: 12px 24px;
-    font-size: 1.1em;
-    border: none;
-    border-radius: 7px;
-    background-color: #007acc;
-    color: white;
-    transition: background-color 0.3s;
-  }
+  input[type=text], input[type=number] { width: 100%; padding: 12px 10px; font-size: 1.1em; border: 1.8px solid #ccc; border-radius: 6px; transition: border-color 0.3s; }
+  input[type=text]:focus, input[type=number]:focus { border-color: #005a87; outline: none; }
+  button { cursor: pointer; margin: 10px 10px 0 0; padding: 12px 24px; font-size: 1.1em; border: none; border-radius: 7px; background-color: #007acc; color: white; transition: background-color 0.3s; }
   button:hover:not(:disabled) { background-color: #005a87; }
   button:disabled { background-color: #a3c1db; cursor: default; }
-  #feedbackBox {
-    margin-top: 15px;
-    font-weight: 700;
-    font-size: 1.1em;
-  }
+  #feedbackBox { margin-top: 15px; font-weight: 700; font-size: 1.1em; }
   #feedbackBox.correct { color: #2d7a2d; }
   #feedbackBox.wrong { color: #c0392b; }
-  #userInfo {
-    margin-bottom: 20px;
-    font-weight: 600;
-    color: #004c6d;
-  }
+  #userInfo { margin-bottom: 20px; font-weight: 600; color: #004c6d; }
   #quizScreen, #resultScreen { display: none; }
-  table {
-    border-collapse: collapse;
-    margin-top: 20px;
-    width: 100%;
-  }
-  th, td {
-    border: 1px solid #ccc;
-    padding: 12px 10px;
-    text-align: center;
-  }
+  table { border-collapse: collapse; margin-top: 20px; width: 100%; }
+  th, td { border: 1px solid #ccc; padding: 12px 10px; text-align: center; }
   th { background-color: #007acc; color: white; }
-  @media(max-width: 480px) {
-    body { padding: 10px; }
-    #container { padding: 20px 15px; }
-    button { width: 100%; margin: 10px 0 0 0; }
-  }
+  @media(max-width: 480px) { body { padding: 10px; } #container { padding: 20px 15px; } button { width: 100%; margin: 10px 0 0 0; } }
 </style>
 </head>
 <body>
-  <div id="container">
+<div id="container">
 
-    <div id="startScreen">
-      <h2>Cadastro do Morador</h2>
-      <label for="name">Nome:</label>
-      <input type="text" id="name" autocomplete="off" />
+<div id="startScreen">
+  <h2>Cadastro do Morador</h2>
+  <label for="name">Nome:</label>
+  <input type="text" id="name" autocomplete="off" />
+  <label for="age">Idade:</label>
+  <input type="number" id="age" min="1" max="120" />
+  <label for="tower">Torre (1 a 6):</label>
+  <input type="number" id="tower" min="1" max="6" />
+  <label for="apartment">Apartamento (ex: 101–108, 201–208, ..., 1201–1208):</label>
+  <input type="number" id="apartment" />
+  <button id="startBtn">Iniciar Quiz</button>
+</div>
 
-      <label for="age">Idade:</label>
-      <input type="number" id="age" min="1" max="120" />
+<div id="quizScreen">
+  <div id="userInfo"></div>
+  <h3>Pergunta <span id="qIndex"></span> de <span id="qTotal"></span></h3>
+  <p id="questionText"></p>
+  <button id="btnFraud">Fraude</button>
+  <button id="btnSafe">Não é fraude</button>
+  <div id="feedbackBox"></div>
+  <button id="nextBtn" style="display:none;">Próxima</button>
+  <p style="font-weight:600; margin-top: 15px;">Pontuação: <span id="score">0</span></p>
+</div>
 
-      <label for="tower">Torre (1 a 6):</label>
-      <input type="number" id="tower" min="1" max="6" />
-
-      <label for="apartment">Apartamento (ex: 101–108, 201–208, ..., 1201–1208):</label>
-      <input type="number" id="apartment" />
-
-      <button id="startBtn">Iniciar Quiz</button>
-    </div>
-
-    <div id="quizScreen">
-      <div id="userInfo"></div>
-      <h3>Pergunta <span id="qIndex"></span> de <span id="qTotal"></span></h3>
-      <p id="questionText"></p>
-      <button id="btnFraud">Fraude</button>
-      <button id="btnSafe">Não é fraude</button>
-      <div id="feedbackBox"></div>
-      <button id="nextBtn" style="display:none;">Próxima</button>
-      <p style="font-weight:600; margin-top: 15px;">Pontuação: <span id="score">0</span></p>
-    </div>
-
-    <div id="resultScreen">
-      <h2 id="resTitle">Resultado Final</h2>
-      <div id="resInfo">
-        <p><strong>Nome:</strong> <span id="resName"></span></p>
-        <p><strong>Torre:</strong> <span id="resTower"></span></p>
-        <p><strong>Pontuação final:</strong> <span id="finalScore"></span></p>
-      </div>
-
-      <h3>Ranking dos moradores</h3>
-      <table id="leaderboardTable" aria-label="Ranking dos moradores">
-        <thead>
-          <tr><th>Posição</th><th>Nome</th><th>Torre</th><th>Pontuação</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-
-      <h3>Desempenho por faixa etária</h3>
-      <table id="ageStatsTable" aria-label="Desempenho por faixa etária">
-        <thead>
-          <tr><th>Faixa Etária</th><th>Quantidade</th><th>Média de Acertos</th><th>Percentual (%)</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-
-      <button id="downloadCSVBtn" style="margin-top:20px; display:none;">Baixar resultados em CSV</button>
-      <button id="restartBtn" style="margin-top:20px;">Reiniciar</button>
-    </div>
-
+<div id="resultScreen">
+  <h2 id="resTitle">Resultado Final</h2>
+  <div id="resInfo">
+    <p><strong>Nome:</strong> <span id="resName"></span></p>
+    <p><strong>Torre:</strong> <span id="resTower"></span></p>
+    <p><strong>Pontuação final:</strong> <span id="finalScore"></span></p>
   </div>
+
+  <h3>Ranking dos moradores</h3>
+  <table id="leaderboardTable" aria-label="Ranking dos moradores">
+    <thead>
+      <tr><th>Posição</th><th>Nome</th><th>Torre</th><th>Pontuação</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h3>Desempenho por faixa etária</h3>
+  <table id="ageStatsTable" aria-label="Desempenho por faixa etária">
+    <thead>
+      <tr><th>Faixa Etária</th><th>Quantidade</th><th>Média de Acertos</th><th>Percentual (%)</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <button id="downloadCSVBtn">Baixar CSV</button>
+  <button id="restartBtn" style="margin-top:20px;">Reiniciar</button>
+</div>
+
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, query, orderBy, Timestamp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAtSr5znaGgvN9ZyITfCJzZD4jRpthAat0",
@@ -156,7 +98,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Perguntas fixas (8 perguntas)
 const SCENARIOS = [
   { question: "Você recebe uma mensagem de um contato desconhecido pedindo dinheiro urgente. O que fazer?", correct: true, explanation: "É uma fraude comum se passar por conhecidos pedindo dinheiro. Nunca envie sem confirmar pessoalmente." },
   { question: "Um site pede para você atualizar seus dados bancários via link no e-mail. Isso é seguro?", correct: true, explanation: "Sites legítimos não pedem atualização via links em e-mails. Pode ser phishing." },
@@ -168,169 +109,136 @@ const SCENARIOS = [
   { question: "Usar senhas fortes e diferentes para cada serviço ajuda a proteger suas contas. Isso é verdade?", correct: false, explanation: "Senhas fortes e diferentes dificultam o acesso não autorizado." }
 ];
 
-let index = 0;
-let score = 0;
-let user = {};
-let isUninter = false;
-
-const LB_KEY = "ranking_condominio_fixed";
-const ANSWERED_KEY = "usuarios_respondidos_condominio";
-const AGE_STATS_KEY = "estatisticas_idade_condominio";
+let index = 0, score = 0, user = {}, isUninter = false, allResults = [];
 
 const startScreen = document.getElementById("startScreen");
 const quizScreen = document.getElementById("quizScreen");
 const resultScreen = document.getElementById("resultScreen");
-const startBtn = document.getElementById("startBtn");
+const questionText = document.getElementById("questionText");
+const qIndex = document.getElementById("qIndex");
+const qTotal = document.getElementById("qTotal");
+const scoreEl = document.getElementById("score");
+const feedbackBox = document.getElementById("feedbackBox");
 const btnFraud = document.getElementById("btnFraud");
 const btnSafe = document.getElementById("btnSafe");
 const nextBtn = document.getElementById("nextBtn");
-const questionText = document.getElementById("questionText");
-const qIndexEl = document.getElementById("qIndex");
-const qTotalEl = document.getElementById("qTotal");
-const scoreEl = document.getElementById("score");
-const feedbackBox = document.getElementById("feedbackBox");
-const userInfoEl = document.getElementById("userInfo");
-const resNameEl = document.getElementById("resName");
-const resTowerEl = document.getElementById("resTower");
-const finalScoreEl = document.getElementById("finalScore");
-const leaderboardTable = document.getElementById("leaderboardTable").querySelector("tbody");
-const ageStatsTable = document.getElementById("ageStatsTable").querySelector("tbody");
-const downloadCSVBtn = document.getElementById("downloadCSVBtn");
-const restartBtn = document.getElementById("restartBtn");
+const startBtn = document.getElementById("startBtn");
 
 startBtn.addEventListener("click", () => {
   const name = document.getElementById("name").value.trim();
   const age = parseInt(document.getElementById("age").value);
-  const tower = parseInt(document.getElementById("tower").value);
+  const tower = document.getElementById("tower").value.trim();
   const apartment = document.getElementById("apartment").value.trim();
-
-  // Usuário uninter entra direto, sem validação
-  isUninter = name.toLowerCase() === "uninter";
-
-  if(!isUninter) {
-    if(!name || !age || !tower || !apartment) {
-      alert("Por favor, preencha todos os campos.");
-      return;
-    }
+  
+  if(name === "" || isNaN(age) || tower === "" || apartment === "") {
+    alert("Por favor, preencha todos os campos.");
+    return;
   }
-
+  
   user = { name, age, tower, apartment };
+  isUninter = name.toLowerCase() === "uninter"; // usuário especial
   startScreen.style.display = "none";
   quizScreen.style.display = "block";
-
-  userInfoEl.textContent = isUninter ? "Usuário Uninter (visualização de resultados)" : `${name} - Torre ${tower}`;
-  qTotalEl.textContent = SCENARIOS.length;
+  qTotal.textContent = SCENARIOS.length;
+  qIndex.textContent = index + 1;
+  document.getElementById("userInfo").textContent = `${user.name} | Torre ${user.tower} | Idade ${user.age}`;
   showQuestion();
 });
 
 function showQuestion() {
-  const current = SCENARIOS[index];
-  questionText.textContent = current.question;
-  qIndexEl.textContent = index + 1;
   feedbackBox.textContent = "";
   feedbackBox.className = "";
+  questionText.textContent = SCENARIOS[index].question;
   btnFraud.disabled = false;
   btnSafe.disabled = false;
   nextBtn.style.display = "none";
 }
 
-function checkAnswer(answer) {
-  const correct = SCENARIOS[index].correct;
+function checkAnswer(isFraud) {
   btnFraud.disabled = true;
   btnSafe.disabled = true;
-  if(answer === correct) {
+  const scenario = SCENARIOS[index];
+  if(isFraud === scenario.correct) {
     score++;
-    feedbackBox.textContent = "Correto! ✅";
+    feedbackBox.textContent = "Correto! " + scenario.explanation;
     feedbackBox.className = "correct";
   } else {
-    feedbackBox.textContent = "Incorreto ❌";
+    feedbackBox.textContent = "Incorreto! " + scenario.explanation;
     feedbackBox.className = "wrong";
   }
+  scoreEl.textContent = score;
   nextBtn.style.display = "inline-block";
 }
 
 btnFraud.addEventListener("click", () => checkAnswer(true));
 btnSafe.addEventListener("click", () => checkAnswer(false));
+nextBtn.addEventListener("click", nextQuestion);
 
-nextBtn.addEventListener("click", () => {
+function nextQuestion() {
   index++;
-  if(index < SCENARIOS.length) {
-    showQuestion();
+  if(index >= SCENARIOS.length) {
+    submitResult();
   } else {
-    endQuiz();
+    qIndex.textContent = index + 1;
+    showQuestion();
   }
-});
+}
 
-async function endQuiz() {
+async function submitResult() {
+  const timestamp = Timestamp.now();
+  const dataToSave = { ...user, score, timestamp };
+  await addDoc(collection(db, "quizResults"), dataToSave);
   quizScreen.style.display = "none";
-  resultScreen.style.display = "block";
-
-  resNameEl.textContent = user.name;
-  resTowerEl.textContent = user.tower || "-";
-  finalScoreEl.textContent = score;
-
-  // Salvar no Firestore se não for uninter
-  if(!isUninter) {
-    await addDoc(collection(db, "quiz_results"), {
-      name: user.name,
-      age: user.age,
-      tower: user.tower,
-      apartment: user.apartment,
-      score,
-      timestamp: new Date()
-    });
-  }
-
-  await updateLeaderboardAndStats();
+  updateLeaderboardAndStats();
 }
 
 async function updateLeaderboardAndStats() {
-  const q = query(collection(db, "quiz_results"), orderBy("score", "desc"));
-  const snapshot = await getDocs(q);
-  const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const snapshot = await getDocs(query(collection(db, "quizResults"), orderBy("score", "desc")));
+  allResults = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-  // Atualiza ranking
-  leaderboardTable.innerHTML = "";
-  data.forEach((item, idx) => {
+  resultScreen.style.display = "block";
+  document.getElementById("resName").textContent = user.name;
+  document.getElementById("resTower").textContent = user.tower;
+  document.getElementById("finalScore").textContent = score;
+
+  // Ranking
+  const leaderboardBody = document.querySelector("#leaderboardTable tbody");
+  leaderboardBody.innerHTML = "";
+  allResults.forEach((u, i) => {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${idx+1}</td><td>${item.name}</td><td>${item.tower || "-"}</td><td>${item.score}</td>`;
-    leaderboardTable.appendChild(tr);
+    tr.innerHTML = `<td>${i+1}</td><td>${u.name}</td><td>${u.tower}</td><td>${u.score}</td>`;
+    leaderboardBody.appendChild(tr);
   });
 
-  // Estatísticas por faixa etária
-  const ranges = [
-    { label: "50–59", min: 50, max: 59 },
-    { label: "60–69", min: 60, max: 69 },
-    { label: "70–79", min: 70, max: 79 },
-    { label: "80+", min: 80, max: 200 }
-  ];
-
-  ageStatsTable.innerHTML = "";
-  ranges.forEach(r => {
-    const filtered = data.filter(u => u.age >= r.min && u.age <= r.max);
-    const avg = filtered.length ? (filtered.reduce((a,b)=>a+b.score,0)/filtered.length).toFixed(2) : 0;
-    const percent = filtered.length ? ((avg/SCENARIOS.length)*100).toFixed(0) : 0;
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${r.label}</td><td>${filtered.length}</td><td>${avg}</td><td>${percent}</td>`;
-    ageStatsTable.appendChild(tr);
+  // Faixa etária
+  const ageStatsBody = document.querySelector("#ageStatsTable tbody");
+  ageStatsBody.innerHTML = "";
+  const groups = { "60–69": [], "70–79": [], "80+": [] };
+  allResults.forEach(u => {
+    if(u.age >= 60 && u.age <= 69) groups["60–69"].push(u.score);
+    else if(u.age >= 70 && u.age <= 79) groups["70–79"].push(u.score);
+    else if(u.age >= 80) groups["80+"].push(u.score);
   });
-
-  // Mostrar botão CSV apenas para uninter
-  if(isUninter) {
-    downloadCSVBtn.style.display = "inline-block";
-  }
+  Object.keys(groups).forEach(group => {
+    const arr = groups[group];
+    const total = arr.length;
+    const avg = total ? (arr.reduce((a,b)=>a+b,0)/total).toFixed(2) : 0;
+    const percent = total ? ((avg / SCENARIOS.length) * 100).toFixed(0) : 0;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${group}</td><td>${total}</td><td>${avg}</td><td>${percent}</td>`;
+    ageStatsBody.appendChild(tr);
+  });
 }
 
-// Download CSV
-downloadCSVBtn.addEventListener("click", () => {
+document.getElementById("downloadCSVBtn").addEventListener("click", () => {
   const rows = [["Nome","Torre","Apartamento","Idade","Pontuação","Data/Hora"]];
-  Array.from(leaderboardTable.querySelectorAll("tr")).forEach((tr,i)=>{
-    if(i===0) return; // cabeçalho
-    const tds = tr.querySelectorAll("td");
-    const userData = data[i-1];
-    rows.push([userData.name, userData.tower, userData.apartment, userData.age, userData.score, new Date(userData.timestamp.seconds*1000).toLocaleString()]);
+  allResults.forEach(u => {
+    rows.push([
+      u.name, u.tower, u.apartment, u.age, u.score,
+      u.timestamp ? new Date(u.timestamp.seconds*1000).toLocaleString() : ""
+    ]);
   });
-  const csvContent = "data:text/csv;charset=utf-8," + rows.map(e=>e.join(",")).join("\n");
+  const csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement("a");
   link.setAttribute("href", encodedUri);
@@ -340,7 +248,8 @@ downloadCSVBtn.addEventListener("click", () => {
   document.body.removeChild(link);
 });
 
-restartBtn.addEventListener("click", () => location.reload());
+document.getElementById("restartBtn").addEventListener("click", () => location.reload());
+
 </script>
 </body>
 </html>
