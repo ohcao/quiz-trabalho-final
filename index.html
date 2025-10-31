@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -87,16 +87,14 @@
       <label for="name">Nome:</label>
       <input type="text" id="name" autocomplete="off" />
 
-      <div id="extraFields">
-        <label for="age">Idade:</label>
-        <input type="number" id="age" min="1" max="120" />
+      <label for="age">Idade:</label>
+      <input type="number" id="age" min="1" max="120" />
 
-        <label for="tower">Torre (1 a 6):</label>
-        <input type="number" id="tower" min="1" max="6" />
+      <label for="tower">Torre (1 a 6):</label>
+      <input type="number" id="tower" min="1" max="6" />
 
-        <label for="apartment">Apartamento (ex: 101–108, 201–208, ..., 1201–1208):</label>
-        <input type="number" id="apartment" />
-      </div>
+      <label for="apartment">Apartamento (ex: 101–108, 201–208, ..., 1201–1208):</label>
+      <input type="number" id="apartment" />
 
       <button id="startBtn">Iniciar Quiz</button>
     </div>
@@ -124,6 +122,14 @@
       <table id="leaderboardTable" aria-label="Ranking dos moradores">
         <thead>
           <tr><th>Posição</th><th>Nome</th><th>Torre</th><th>Pontuação</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <h3>Desempenho por faixa etária</h3>
+      <table id="ageStatsTable" aria-label="Desempenho por faixa etária">
+        <thead>
+          <tr><th>Faixa Etária</th><th>Quantidade</th><th>Média de Acertos</th><th>Percentual (%)</th></tr>
         </thead>
         <tbody></tbody>
       </table>
@@ -174,7 +180,8 @@
   const btnFraud = document.getElementById("btnFraud");
   const btnSafe = document.getElementById("btnSafe");
   const userInfo = document.getElementById("userInfo");
-  const extraFields = document.getElementById("extraFields");
+  const ageStatsTableBody = document.querySelector("#ageStatsTable tbody");
+  const leaderboardBody = document.querySelector("#leaderboardTable tbody");
 
   function showQuestion() {
     qIndex.textContent = index + 1;
@@ -187,12 +194,12 @@
     btnSafe.disabled = false;
   }
 
-  function checkAnswer(answer) {
+  function checkAnswer(userAnswer) {
     const current = SCENARIOS[index];
     btnFraud.disabled = true;
     btnSafe.disabled = true;
 
-    if (answer === current.correct) {
+    if (userAnswer === current.correct) {
       score++;
       feedbackBox.textContent = "Correto! " + current.explanation;
       feedbackBox.className = "correct";
@@ -204,84 +211,113 @@
     nextBtn.style.display = "inline-block";
   }
 
-  async function saveResultToFirebase() {
-    if (isUninter) return; // não salva se for UNINTER
-    try {
-      await addDoc(collection(db, "quizResults"), {
-        name: user.name,
-        tower: user.tower,
-        apartment: user.apartment,
-        age: user.age,
-        score: score,
-        timestamp: new Date()
-      });
-    } catch (e) {
-      console.error("Erro ao salvar:", e);
-    }
-  }
-
-  async function loadRanking() {
-    const snapshot = await getDocs(collection(db, "quizResults"));
-    let data = [];
-    snapshot.forEach(doc => data.push(doc.data()));
-    data.sort((a, b) => b.score - a.score);
-
-    const tbody = document.querySelector("#leaderboardTable tbody");
-    tbody.innerHTML = "";
-    data.forEach((entry, i) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${i + 1}</td><td>${entry.name}</td><td>${entry.tower}</td><td>${entry.score}</td>`;
-      tbody.appendChild(tr);
-    });
-  }
-
-  function showResult() {
+  async function showResult() {
     startScreen.style.display = "none";
     quizScreen.style.display = "none";
     resultScreen.style.display = "block";
 
+    const resInfo = document.getElementById("resInfo");
+    const resTitle = document.getElementById("resTitle");
+
     if (isUninter) {
-      document.getElementById("resInfo").style.display = "none";
-      document.getElementById("resTitle").textContent = "Resumo dos Moradores";
-    } else {
-      document.getElementById("resInfo").style.display = "block";
-      document.getElementById("resTitle").textContent = "Resultado Final";
-      document.getElementById("resName").textContent = user.name;
-      document.getElementById("resTower").textContent = user.tower;
-      document.getElementById("finalScore").textContent = score;
-      saveResultToFirebase();
+      resInfo.style.display = "none";
+      resTitle.textContent = "Resumo dos Moradores";
+      await carregarResumoFirestore();
+      return;
     }
 
-    loadRanking();
+    document.getElementById("resName").textContent = user.name;
+    document.getElementById("resTower").textContent = user.tower;
+    document.getElementById("finalScore").textContent = score;
+
+    await addDoc(collection(db, "quizResults"), {
+      name: user.name,
+      tower: user.tower,
+      apartment: user.apartment,
+      age: user.age,
+      score,
+      timestamp: new Date()
+    });
+  }
+
+  async function carregarResumoFirestore() {
+    const snapshot = await getDocs(collection(db, "quizResults"));
+    const dados = snapshot.docs.map(d => d.data());
+
+    // Ranking
+    const ranking = [...dados].sort((a,b) => b.score - a.score);
+    leaderboardBody.innerHTML = "";
+    ranking.forEach((r, i) => {
+      leaderboardBody.innerHTML += `<tr><td>${i+1}</td><td>${r.name}</td><td>${r.tower}</td><td>${r.score}</td></tr>`;
+    });
+
+    // Faixas etárias
+    const faixas = { "60 - 70": [], "71 - 80": [], "81 - 90": [], "Acima de 90": [] };
+    dados.forEach(d => {
+      const a = d.age;
+      if (a >= 60 && a <= 70) faixas["60 - 70"].push(d.score);
+      else if (a >= 71 && a <= 80) faixas["71 - 80"].push(d.score);
+      else if (a >= 81 && a <= 90) faixas["81 - 90"].push(d.score);
+      else if (a > 90) faixas["Acima de 90"].push(d.score);
+    });
+
+    ageStatsTableBody.innerHTML = "";
+    for (const faixa in faixas) {
+      const v = faixas[faixa];
+      const qtd = v.length;
+      const media = qtd ? (v.reduce((a,b)=>a+b,0)/qtd).toFixed(2) : "-";
+      const perc = qtd ? ((media / SCENARIOS.length) * 100).toFixed(1) : "-";
+      ageStatsTableBody.innerHTML += `<tr><td>${faixa}</td><td>${qtd}</td><td>${media}</td><td>${perc}</td></tr>`;
+    }
   }
 
   function iniciarQuiz() {
-    const name = document.getElementById("name").value.trim().toLowerCase();
+    const name = document.getElementById("name").value.trim();
+    const age = Number(document.getElementById("age").value);
+    const tower = Number(document.getElementById("tower").value);
+    const apartment = Number(document.getElementById("apartment").value);
 
-    if (!name) { alert("Por favor, insira o nome."); return; }
+    if (!name) { alert("Por favor, insira seu nome."); return; }
 
-    if (name === "uninter") {
+    if (name.toLowerCase() === "uninter") {
       isUninter = true;
-      user = { name: "UNINTER" };
     } else {
-      const age = Number(document.getElementById("age").value);
-      const tower = Number(document.getElementById("tower").value);
-      const apartment = Number(document.getElementById("apartment").value);
-
+      isUninter = false;
       if (!age || age < 1 || age > 120) { alert("Idade inválida."); return; }
       if (!tower || tower < 1 || tower > 6) { alert("Torre inválida."); return; }
+
       const andar = Math.floor(apartment / 100);
       const unidade = apartment % 100;
-      if (!(andar >= 1 && andar <= 12 && unidade >= 1 && unidade <= 8)) {
-        alert("Apartamento inválido."); return;
+      if (andar < 1 || andar > 12 || unidade < 1 || unidade > 8) {
+        alert("Apartamento inválido. Use apenas 101–108, 201–208, ..., 1201–1208.");
+        return;
       }
-      user = { name, age, tower, apartment };
     }
+
+    user = { name, age, tower, apartment };
+    index = 0; score = 0;
 
     startScreen.style.display = "none";
     quizScreen.style.display = "block";
-    score = 0;
-    index = 0;
-    scoreEl.textContent = score;
+    resultScreen.style.display = "none";
 
-    userInfo.textContent =
+    userInfo.textContent = isUninter
+      ? "Modo UNINTER: visualização do quiz"
+      : `Olá, ${name} (Torre ${tower}, Apt ${apartment})`;
+
+    scoreEl.textContent = score;
+    showQuestion();
+  }
+
+  document.getElementById("startBtn").addEventListener("click", iniciarQuiz);
+  btnFraud.addEventListener("click", () => checkAnswer(true));
+  btnSafe.addEventListener("click", () => checkAnswer(false));
+  nextBtn.addEventListener("click", () => {
+    index++;
+    if (index >= SCENARIOS.length) showResult();
+    else showQuestion();
+  });
+  document.getElementById("restartBtn").addEventListener("click", () => location.reload());
+</script>
+</body>
+</html>
